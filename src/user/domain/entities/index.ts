@@ -1,2 +1,2 @@
 
-export * from './user.enity'
+export * from './user.entity'

@@ -7,54 +7,64 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { CommandBus, QueryBus } from '../../shared/cqrs';
 import {
-  CreateUserDto,
-  CreateUserUseCase,
-  ListUsersUseCase,
-  DeleteUserUseCase,
-  UpdateUserUseCase,
-  GetUserUseCase,
-  UpdateUserDto,
-} from '../application/use-cases';
+  CreateUserCommand,
+  UpdateUserCommand,
+  DeleteUserCommand,
+} from '../application/commands';
+import {
+  GetUserQuery,
+  ListUsersQuery,
+} from '../application/queries';
 import { User } from '../domain/entities';
 
+/**
+ * User Controller with CQRS Pattern
+ * Uses CommandBus for write operations and QueryBus for read operations
+ */
 @Controller('user')
 export class UserController {
   constructor(
-    private createUserUseCase: CreateUserUseCase,
-    private readonly getUserUseCase: GetUserUseCase,
-    private readonly listUsersUseCase: ListUsersUseCase,
-    private readonly deleteUserUseCase: DeleteUserUseCase,
-    private readonly updateUserUseCase: UpdateUserUseCase,
-  ) {}
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) { }
 
   @Post('create')
-  async createUser(@Body() request: CreateUserDto) {
-    const user = await this.createUserUseCase.execute(request);
+  async createUser(@Body() request: { name: string; email: string }) {
+    const command = new CreateUserCommand(request.name, request.email);
+    const user = await this.commandBus.execute<CreateUserCommand, User>(command);
     return this.mapUserToResponse(user);
   }
 
   @Get(':id')
   async getUser(@Param('id') id: string) {
-    const user = await this.getUserUseCase.execute(id);
+    const query = new GetUserQuery(id);
+    const user = await this.queryBus.execute<GetUserQuery, User>(query);
     return this.mapUserToResponse(user);
   }
 
   @Get()
   async listUsers() {
-    const users = await this.listUsersUseCase.execute();
+    const query = new ListUsersQuery();
+    const users = await this.queryBus.execute<ListUsersQuery, User[]>(query);
     return users.map((user) => this.mapUserToResponse(user));
   }
 
   @Patch(':id')
-  async updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    const user = await this.updateUserUseCase.execute(id, body);
+  async updateUser(
+    @Param('id') id: string,
+    @Body() body: { name?: string; email?: string },
+  ) {
+    const command = new UpdateUserCommand(id, body.name, body.email);
+    const user = await this.commandBus.execute<UpdateUserCommand, User>(command);
     return this.mapUserToResponse(user);
   }
 
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
-    await this.deleteUserUseCase.execute(id);
+    const command = new DeleteUserCommand(id);
+    await this.commandBus.execute(command);
   }
 
   private mapUserToResponse(user: User) {
