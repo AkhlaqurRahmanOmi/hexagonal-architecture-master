@@ -64,17 +64,19 @@ The project is organized to maintain a clear separation of concerns:
 
 ```text
 src/
-├── shared/           # Shared utilities, CQRS core components
-└── user/             # Feature module (User)
-    ├── application/  # Business orchestration logic
-    │   ├── commands/ # Write operations
-    │   ├── queries/  # Read operations
-    │   ├── handlers/ # Logic to process commands/queries
-    │   └── ports/    # Interfaces for external dependencies
-    ├── domain/       # Core business logic (Entities, Value Objects)
-    ├── infrastructure/ # External implementations (Adapters)
-    │   └── adapaters/# TypeORM repositories, entities
-    └── presentation/ # Entry points (Controllers, GraphQL, etc.)
+├── shared/           # Cross-cutting concerns & CQRS core
+│   ├── cqrs/         # Generic base classes for commands/queries
+│   └── ...
+└── user/             # User Feature Module
+    ├── application/  # Business Orchestration
+    │   ├── ports/    # Outbound Interfaces (Repositories)
+    │   ├── user.commands.ts
+    │   ├── user.queries.ts
+    │   └── user.handlers.ts
+    ├── domain/       # Core Business Logic (Entities)
+    ├── infrastructure/ # External Adapters
+    │   └── adapaters/ # TypeORM & In-Memory persistence
+    └── presentation/ # Inbound Adapters (Controllers)
 ```
 
 ---
@@ -127,9 +129,10 @@ $ npm run test:cov
 
 ## 🛠️ Key Features
 
-- **Decoupled Persistence**: Easily swap TypeORM for MongoDB or any other DB by implementing a new adapter.
+- **Decoupled Persistence**: Easily swap TypeORM for In-Memory or any other DB by implementing a new adapter.
 - **Explicit Intent**: Commands and Queries clearly define what the system can do.
-- **Domain-Centric**: Business rules are isolated within the domain layer.
+- **Domain-Driven Design**: Business rules are isolated within the domain layer.
+- **Generic CQRS Base**: Reduced boilerplate with shared base handlers and interfaces.
 - **Type Safety**: Full TypeScript implementation with strict typing.
 
 ---

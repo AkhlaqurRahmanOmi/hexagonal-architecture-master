@@ -12,11 +12,11 @@ import {
   CreateUserCommand,
   UpdateUserCommand,
   DeleteUserCommand,
-} from '../application/commands';
+} from '../application/user.commands';
 import {
   GetUserQuery,
   ListUsersQuery,
-} from '../application/queries';
+} from '../application/user.queries';
 import { User } from '../domain/entities';
 
 /**

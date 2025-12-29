@@ -4,6 +4,9 @@ export * from './cqrs.module';
 // Export base interfaces
 export * from './interfaces';
 
+// Export generic base classes
+export * from './base';
+
 // Re-export commonly used CQRS decorators and classes from @nestjs/cqrs
 // This makes them easily accessible from a single import point
 export {
