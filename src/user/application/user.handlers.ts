@@ -4,6 +4,7 @@ import { CreateUserCommand, UpdateUserCommand, DeleteUserCommand } from './user.
 import { GetUserQuery, ListUsersQuery } from './user.queries';
 import { USER_REPOSITORY, UserRepositoryPort } from './ports';
 import { User } from '../domain/entities';
+import { UserFactory } from '../domain/factories/user.factory';
 
 /**
  * HANDLER: CreateUser
@@ -19,7 +20,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand, Use
         const { name, email } = command;
         const existingUser = await this.userRepository.findByEmail(email);
         if (existingUser) throw new Error('User already exists');
-        const user = User.create(name, email);
+        const user = UserFactory.create({ name, email });
         return this.userRepository.save(user);
     }
 }

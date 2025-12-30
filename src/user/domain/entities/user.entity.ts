@@ -1,49 +1,53 @@
 import { userId } from '../value-objects';
 import { Email } from '../value-objects';
 
-export class User {
-  constructor(
-    private readonly id: userId,
-    private name : string,
-    private email: Email,
-    private readonly createdAt: Date,
-    private updatedAt: Date,
-  ) {
-  }
+type UserProps = {
+  id: userId;
+  name: string;
+  email: Email;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
+export class User {
+  private constructor(private props: UserProps) {
+  }
 
   static create(name: string, email: string) {
     if (!name || name.trim().length<2){
       throw new Error('Name must be at least 2 character long');
     }
-    return new User(
-      new userId(),
-      name.trim(),
-      new Email(email),
-      new Date(),
-      new Date()
-    )
+    return new User({
+      id: new userId(),
+      name: name.trim(),
+      email: new Email(email),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   }
 
+  static rehydrate(props: UserProps): User {
+    return new User(props);
+  }
 
   getId(): userId {
-    return this.id;
+    return this.props.id;
   }
 
   getName(): string {
-    return this.name;
+    return this.props.name;
   }
 
   getEmail() {
-    return this.email;
+    return this.props.email;
   }
 
   getCreatedAt(): Date {
-    return this.createdAt;
+    return this.props.createdAt;
   }
 
   getUpatedAt(): Date {
-    return this.updatedAt;
+    return this.props.updatedAt;
   }
 
   updateName(name: string) {
@@ -51,18 +55,18 @@ export class User {
       throw new Error('Name must be at least 2 characters long');
     }
 
-    this.name = name;
-    this.updatedAt = new Date();
+    this.props.name = name;
+    this.props.updatedAt = new Date();
   }
 
   updateEmail(email: string) {
-    this.email = new Email(email);
-    this.updatedAt = new Date();
+    this.props.email = new Email(email);
+    this.props.updatedAt = new Date();
   }
 
   getAccountAge(): number {
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - this.createdAt.getTime());
+    const diffTime = Math.abs(now.getTime() - this.props.createdAt.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 }
