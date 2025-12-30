@@ -5,12 +5,15 @@ import { User } from '../domain/entities';
  * Query to get a single user by ID
  */
 export class GetUserQuery implements IQuery<User> {
-    constructor(public readonly id: string) { }
+    constructor(
+        public readonly tenantId: string,
+        public readonly id: string,
+    ) { }
 }
 
 /**
  * Query to get all users
  */
 export class ListUsersQuery implements IQuery<User[]> {
-    constructor() { }
+    constructor(public readonly tenantId: string) { }
 }

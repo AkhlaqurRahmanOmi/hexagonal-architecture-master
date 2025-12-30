@@ -5,6 +5,7 @@ import { ICommand } from '../../shared/cqrs';
  */
 export class CreateUserCommand implements ICommand {
     constructor(
+        public readonly tenantId: string,
         public readonly name: string,
         public readonly email: string,
     ) { }
@@ -15,6 +16,7 @@ export class CreateUserCommand implements ICommand {
  */
 export class UpdateUserCommand implements ICommand {
     constructor(
+        public readonly tenantId: string,
         public readonly id: string,
         public readonly name?: string,
         public readonly email?: string,
@@ -25,5 +27,8 @@ export class UpdateUserCommand implements ICommand {
  * Command to delete a user
  */
 export class DeleteUserCommand implements ICommand {
-    constructor(public readonly id: string) { }
+    constructor(
+        public readonly tenantId: string,
+        public readonly id: string,
+    ) { }
 }

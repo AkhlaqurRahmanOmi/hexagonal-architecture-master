@@ -5,7 +5,7 @@ import { UserRepositoryPort } from '../../application/ports';
 import { User } from '../../domain/entities';
 import { UserEntity } from './user.orm-entity';
 
-import { userId, Email } from '../../domain/value-objects';
+import { userId, Email, TenantId } from '../../domain/value-objects';
 
 /**
  * TypeORM implementation of UserRepositoryPort
@@ -22,8 +22,10 @@ export class TypeOrmUserRepository implements UserRepositoryPort {
         // Map domain entity to database entity
         const userEntity = new UserEntity();
         userEntity.id = user.getId().getValue();
+        userEntity.tenantId = user.getTenantId().getValue();
         userEntity.name = user.getName();
         userEntity.email = user.getEmail().getValue();
+        userEntity.passwordHash = user.getPasswordHash() || null;
         userEntity.createdAt = user.getCreatedAt();
         userEntity.updatedAt = user.getUpatedAt();
 
@@ -33,8 +35,10 @@ export class TypeOrmUserRepository implements UserRepositoryPort {
         return user;
     }
 
-    async findById(id: string): Promise<User | null> {
-        const userEntity = await this.userRepository.findOne({ where: { id } });
+    async findById(tenantId: string, id: string): Promise<User | null> {
+        const userEntity = await this.userRepository.findOne({
+            where: { id, tenantId },
+        });
 
         if (!userEntity) {
             return null;
@@ -44,8 +48,10 @@ export class TypeOrmUserRepository implements UserRepositoryPort {
         return this.toDomain(userEntity);
     }
 
-    async findByEmail(email: string): Promise<User | null> {
-        const userEntity = await this.userRepository.findOne({ where: { email } });
+    async findByEmail(tenantId: string, email: string): Promise<User | null> {
+        const userEntity = await this.userRepository.findOne({
+            where: { email, tenantId },
+        });
 
         if (!userEntity) {
             return null;
@@ -54,14 +60,16 @@ export class TypeOrmUserRepository implements UserRepositoryPort {
         return this.toDomain(userEntity);
     }
 
-    async findAll(): Promise<User[]> {
-        const userEntities = await this.userRepository.find();
+    async findAll(tenantId: string): Promise<User[]> {
+        const userEntities = await this.userRepository.find({
+            where: { tenantId },
+        });
 
         return userEntities.map((entity) => this.toDomain(entity));
     }
 
-    async delete(id: string): Promise<void> {
-        await this.userRepository.delete(id);
+    async delete(tenantId: string, id: string): Promise<void> {
+        await this.userRepository.delete({ id, tenantId });
     }
 
     /**
@@ -70,10 +78,12 @@ export class TypeOrmUserRepository implements UserRepositoryPort {
     private toDomain(userEntity: UserEntity): User {
         return new User(
             new userId(userEntity.id),
+            new TenantId(userEntity.tenantId),
             userEntity.name,
             new Email(userEntity.email),
             userEntity.createdAt,
             userEntity.updatedAt,
+            userEntity.passwordHash || undefined,
         );
     }
 }

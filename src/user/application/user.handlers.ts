@@ -16,10 +16,10 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand, Use
     ) { }
 
     async execute(command: CreateUserCommand): Promise<User> {
-        const { name, email } = command;
-        const existingUser = await this.userRepository.findByEmail(email);
+        const { tenantId, name, email } = command;
+        const existingUser = await this.userRepository.findByEmail(tenantId, email);
         if (existingUser) throw new Error('User already exists');
-        const user = User.create(name, email);
+        const user = User.create(name, email, tenantId);
         return this.userRepository.save(user);
     }
 }
@@ -35,8 +35,8 @@ export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand, Use
     ) { }
 
     async execute(command: UpdateUserCommand): Promise<User> {
-        const { id, name, email } = command;
-        const user = await this.userRepository.findById(id);
+        const { tenantId, id, name, email } = command;
+        const user = await this.userRepository.findById(tenantId, id);
         if (!user) throw new NotFoundException('User not found');
         if (name) user.updateName(name);
         if (email) user.updateEmail(email);
@@ -55,7 +55,7 @@ export class DeleteUserHandler implements ICommandHandler<DeleteUserCommand, voi
     ) { }
 
     async execute(command: DeleteUserCommand): Promise<void> {
-        await this.userRepository.delete(command.id);
+        await this.userRepository.delete(command.tenantId, command.id);
     }
 }
 
@@ -70,7 +70,7 @@ export class GetUserHandler implements IQueryHandler<GetUserQuery, User> {
     ) { }
 
     async execute(query: GetUserQuery): Promise<User> {
-        const user = await this.userRepository.findById(query.id);
+        const user = await this.userRepository.findById(query.tenantId, query.id);
         if (!user) throw new NotFoundException('User not found.');
         return user;
     }
@@ -87,7 +87,7 @@ export class ListUsersHandler implements IQueryHandler<ListUsersQuery, User[]> {
     ) { }
 
     async execute(query: ListUsersQuery): Promise<User[]> {
-        return this.userRepository.findAll();
+        return this.userRepository.findAll(query.tenantId);
     }
 }
 

@@ -22,6 +22,7 @@ import { UserController } from './presentation/user.controller';
       provide: USER_REPOSITORY,
       useClass: TypeOrmUserRepository,
     }
-  ]
+  ],
+  exports: [USER_REPOSITORY],
 })
 export class UserModule { }
