@@ -17,6 +17,8 @@ import { PermissionEntity } from './infrastructure/adapters/permission.orm-entit
 import { RolePermissionEntity } from './infrastructure/adapters/role-permission.orm-entity';
 import { UserRoleAssignmentEntity } from './infrastructure/adapters/user-role-assignment.orm-entity';
 import { UserModule } from '../user/user.module';
+import { RolesGuard } from './guards/roles.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
 
 @Module({
   imports: [
@@ -45,6 +47,14 @@ import { UserModule } from '../user/user.module';
       provide: ROLE_ASSIGNMENT_REPOSITORY,
       useClass: TypeOrmRoleAssignmentRepository,
     },
+    RolesGuard,
+    PermissionsGuard,
+  ],
+  exports: [
+    RolesGuard,
+    PermissionsGuard,
+    ROLE_REPOSITORY,
+    ROLE_ASSIGNMENT_REPOSITORY,
   ],
 })
 export class RbacModule {}

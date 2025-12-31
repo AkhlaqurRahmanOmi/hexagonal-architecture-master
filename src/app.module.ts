@@ -9,6 +9,7 @@ import { LoggerModule } from './logger/logger.module';
 import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
 import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './rbac/rbac.module';
+import { TenantModule } from './tenant/tenant.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { RbacModule } from './rbac/rbac.module';
     SharedModule,
     AuthModule,
     RbacModule,
+    TenantModule,
     UserModule,
   ],
   controllers: [HealthController],

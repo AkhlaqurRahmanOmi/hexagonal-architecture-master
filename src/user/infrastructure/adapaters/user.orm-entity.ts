@@ -5,7 +5,7 @@ import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, Inde
  * This is the database representation of the User domain entity
  */
 @Entity('users')
-@Index(['tenantId', 'email'], { unique: true })
+@Index(['email'], { unique: true })
 export class UserEntity {
     @PrimaryColumn('uuid')
     id: string;

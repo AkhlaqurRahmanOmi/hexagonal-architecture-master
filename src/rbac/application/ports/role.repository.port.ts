@@ -5,6 +5,7 @@ export interface RoleRepositoryPort {
   update(role: Role): Promise<Role>;
   findById(tenantId: string, id: string): Promise<Role | null>;
   findByName(tenantId: string, name: string): Promise<Role | null>;
+  findByIds(tenantId: string, ids: string[]): Promise<Role[]>;
   list(tenantId: string): Promise<Role[]>;
   delete(tenantId: string, id: string): Promise<void>;
   assignPermissions(roleId: string, permissionIds: string[]): Promise<void>;

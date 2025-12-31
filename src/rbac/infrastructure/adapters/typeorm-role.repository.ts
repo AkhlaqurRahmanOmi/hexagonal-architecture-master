@@ -6,6 +6,7 @@ import { Role } from '../../domain/entities';
 import { RoleEntity } from './role.orm-entity';
 import { RolePermissionEntity } from './role-permission.orm-entity';
 import { RoleId } from '../../domain/value-objects';
+import { In } from 'typeorm';
 
 @Injectable()
 export class TypeOrmRoleRepository implements RoleRepositoryPort {
@@ -44,6 +45,14 @@ export class TypeOrmRoleRepository implements RoleRepositoryPort {
 
   async list(tenantId: string): Promise<Role[]> {
     const entities = await this.roleRepository.find({ where: { tenantId } });
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
+  async findByIds(tenantId: string, ids: string[]): Promise<Role[]> {
+    if (!ids.length) return [];
+    const entities = await this.roleRepository.find({
+      where: { tenantId, id: In(ids) },
+    });
     return entities.map((entity) => this.toDomain(entity));
   }
 

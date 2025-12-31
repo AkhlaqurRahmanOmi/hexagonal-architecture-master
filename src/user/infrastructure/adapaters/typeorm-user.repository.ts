@@ -60,6 +60,18 @@ export class TypeOrmUserRepository implements UserRepositoryPort {
         return this.toDomain(userEntity);
     }
 
+    async findByEmailGlobal(email: string): Promise<User | null> {
+        const userEntity = await this.userRepository.findOne({
+            where: { email },
+        });
+
+        if (!userEntity) {
+            return null;
+        }
+
+        return this.toDomain(userEntity);
+    }
+
     async findAll(tenantId: string): Promise<User[]> {
         const userEntities = await this.userRepository.find({
             where: { tenantId },
