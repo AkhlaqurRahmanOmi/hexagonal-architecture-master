@@ -9,11 +9,14 @@ import { CommandHandler, ICommandHandler, QueryHandler, IQueryHandler } from '..
 import {
   AddTenantMemberCommand,
   ActivateTenantCommand,
+  AddTenantDomainCommand,
   CreateTenantCommand,
   DeactivateTenantCommand,
   RemoveTenantMemberCommand,
+  RemoveTenantDomainCommand,
   UpdateTenantCommand,
   UpdateTenantMemberRoleCommand,
+  VerifyTenantDomainCommand,
 } from '../commands/tenant.commands';
 import {
   GetTenantQuery,
@@ -22,12 +25,18 @@ import {
   ListUserTenantsQuery,
 } from '../queries/tenant.queries';
 import {
+  ListTenantDomainsQuery,
+  ResolveTenantByDomainQuery,
+} from '../queries/tenant-domain.queries';
+import {
   TENANT_REPOSITORY,
   TenantRepositoryPort,
   TENANT_MEMBERSHIP_REPOSITORY,
   TenantMembershipRepositoryPort,
+  TENANT_DOMAIN_REPOSITORY,
+  TenantDomainRepositoryPort,
 } from '../ports';
-import { Tenant, TenantMembership } from '../../domain/entities';
+import { Tenant, TenantMembership, TenantDomain } from '../../domain/entities';
 
 @CommandHandler(CreateTenantCommand)
 export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand, Tenant> {
@@ -36,6 +45,8 @@ export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand,
     private readonly tenantRepository: TenantRepositoryPort,
     @Inject(TENANT_MEMBERSHIP_REPOSITORY)
     private readonly membershipRepository: TenantMembershipRepositoryPort,
+    @Inject(TENANT_DOMAIN_REPOSITORY)
+    private readonly domainRepository: TenantDomainRepositoryPort,
   ) {}
 
   async execute(command: CreateTenantCommand): Promise<Tenant> {
@@ -59,6 +70,13 @@ export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand,
       'admin',
     );
     await this.membershipRepository.create(membership);
+
+    const domain = TenantDomain.create(
+      randomUUID(),
+      created.getId().getValue(),
+      `${created.getId().getValue()}.local`,
+    );
+    await this.domainRepository.create(domain);
 
     return created;
   }
@@ -230,6 +248,95 @@ export class ListUserTenantsHandler
   }
 }
 
+@CommandHandler(AddTenantDomainCommand)
+export class AddTenantDomainHandler
+  implements ICommandHandler<AddTenantDomainCommand, TenantDomain>
+{
+  constructor(
+    @Inject(TENANT_DOMAIN_REPOSITORY)
+    private readonly domainRepository: TenantDomainRepositoryPort,
+    @Inject(TENANT_REPOSITORY)
+    private readonly tenantRepository: TenantRepositoryPort,
+  ) {}
+
+  async execute(command: AddTenantDomainCommand): Promise<TenantDomain> {
+    const tenant = await this.tenantRepository.findById(command.tenantId);
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+    const existing = await this.domainRepository.findByDomain(command.domain);
+    if (existing) {
+      throw new ConflictException('Domain already in use');
+    }
+    const domain = TenantDomain.create(
+      randomUUID(),
+      command.tenantId,
+      command.domain,
+    );
+    return this.domainRepository.create(domain);
+  }
+}
+
+@CommandHandler(VerifyTenantDomainCommand)
+export class VerifyTenantDomainHandler
+  implements ICommandHandler<VerifyTenantDomainCommand, void>
+{
+  constructor(
+    @Inject(TENANT_DOMAIN_REPOSITORY)
+    private readonly domainRepository: TenantDomainRepositoryPort,
+  ) {}
+
+  async execute(command: VerifyTenantDomainCommand): Promise<void> {
+    await this.domainRepository.verify(command.tenantId, command.domainId);
+  }
+}
+
+@CommandHandler(RemoveTenantDomainCommand)
+export class RemoveTenantDomainHandler
+  implements ICommandHandler<RemoveTenantDomainCommand, void>
+{
+  constructor(
+    @Inject(TENANT_DOMAIN_REPOSITORY)
+    private readonly domainRepository: TenantDomainRepositoryPort,
+  ) {}
+
+  async execute(command: RemoveTenantDomainCommand): Promise<void> {
+    await this.domainRepository.remove(command.tenantId, command.domainId);
+  }
+}
+
+@QueryHandler(ListTenantDomainsQuery)
+export class ListTenantDomainsHandler
+  implements IQueryHandler<ListTenantDomainsQuery, TenantDomain[]>
+{
+  constructor(
+    @Inject(TENANT_DOMAIN_REPOSITORY)
+    private readonly domainRepository: TenantDomainRepositoryPort,
+  ) {}
+
+  async execute(query: ListTenantDomainsQuery): Promise<TenantDomain[]> {
+    return this.domainRepository.listByTenant(query.tenantId);
+  }
+}
+
+@QueryHandler(ResolveTenantByDomainQuery)
+export class ResolveTenantByDomainHandler
+  implements IQueryHandler<ResolveTenantByDomainQuery, TenantDomain>
+{
+  constructor(
+    @Inject(TENANT_DOMAIN_REPOSITORY)
+    private readonly domainRepository: TenantDomainRepositoryPort,
+  ) {}
+
+  async execute(query: ResolveTenantByDomainQuery): Promise<TenantDomain> {
+    const domain = await this.domainRepository.findByDomain(query.domain);
+    if (!domain) {
+      throw new NotFoundException('Tenant domain not found');
+    }
+    return domain;
+  }
+}
+
 export const TENANT_HANDLERS = [
   CreateTenantHandler,
   UpdateTenantHandler,
@@ -242,4 +349,9 @@ export const TENANT_HANDLERS = [
   ListTenantsHandler,
   ListTenantMembersHandler,
   ListUserTenantsHandler,
+  AddTenantDomainHandler,
+  VerifyTenantDomainHandler,
+  RemoveTenantDomainHandler,
+  ListTenantDomainsHandler,
+  ResolveTenantByDomainHandler,
 ];

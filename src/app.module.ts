@@ -10,6 +10,8 @@ import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
 import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './rbac/rbac.module';
 import { TenantModule } from './tenant/tenant.module';
+import { LeadModule } from './lead/lead.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { TenantModule } from './tenant/tenant.module';
     AuthModule,
     RbacModule,
     TenantModule,
+    ActivityModule,
+    LeadModule,
     UserModule,
   ],
   controllers: [HealthController],

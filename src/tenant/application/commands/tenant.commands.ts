@@ -39,3 +39,24 @@ export class UpdateTenantMemberRoleCommand implements ICommand {
     public readonly role: MembershipRole,
   ) {}
 }
+
+export class AddTenantDomainCommand implements ICommand {
+  constructor(
+    public readonly tenantId: string,
+    public readonly domain: string,
+  ) {}
+}
+
+export class VerifyTenantDomainCommand implements ICommand {
+  constructor(
+    public readonly tenantId: string,
+    public readonly domainId: string,
+  ) {}
+}
+
+export class RemoveTenantDomainCommand implements ICommand {
+  constructor(
+    public readonly tenantId: string,
+    public readonly domainId: string,
+  ) {}
+}

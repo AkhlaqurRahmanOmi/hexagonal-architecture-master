@@ -3,11 +3,14 @@ import { CommandBus, QueryBus } from '../../shared/cqrs';
 import {
   AddTenantMemberCommand,
   ActivateTenantCommand,
+  AddTenantDomainCommand,
   CreateTenantCommand,
   DeactivateTenantCommand,
   RemoveTenantMemberCommand,
+  RemoveTenantDomainCommand,
   UpdateTenantCommand,
   UpdateTenantMemberRoleCommand,
+  VerifyTenantDomainCommand,
 } from '../application/commands/tenant.commands';
 import {
   GetTenantQuery,
@@ -15,11 +18,13 @@ import {
   ListTenantsQuery,
   ListUserTenantsQuery,
 } from '../application/queries/tenant.queries';
+import { ListTenantDomainsQuery } from '../application/queries/tenant-domain.queries';
 import {
   AddTenantMemberDto,
   CreateTenantDto,
   UpdateTenantDto,
   UpdateTenantMemberRoleDto,
+  AddTenantDomainDto,
 } from '../dtos';
 import { Tenant } from '../domain/entities';
 import { TenantGuard } from '../guards/tenant.guard';
@@ -80,6 +85,45 @@ export class TenantController {
   @UseGuards(TenantGuard)
   async listMembers(@Param('tenantId') tenantId: string) {
     return this.queryBus.execute(new ListTenantMembersQuery(tenantId));
+  }
+
+  @Get(':tenantId/domains')
+  @UseGuards(TenantGuard)
+  async listDomains(@Param('tenantId') tenantId: string) {
+    return this.queryBus.execute(new ListTenantDomainsQuery(tenantId));
+  }
+
+  @Post(':tenantId/domains')
+  @UseGuards(TenantGuard)
+  async addDomain(
+    @Param('tenantId') tenantId: string,
+    @Body() dto: AddTenantDomainDto,
+  ) {
+    return this.commandBus.execute(
+      new AddTenantDomainCommand(tenantId, dto.domain),
+    );
+  }
+
+  @Post(':tenantId/domains/:domainId/verify')
+  @UseGuards(TenantGuard)
+  async verifyDomain(
+    @Param('tenantId') tenantId: string,
+    @Param('domainId') domainId: string,
+  ) {
+    return this.commandBus.execute(
+      new VerifyTenantDomainCommand(tenantId, domainId),
+    );
+  }
+
+  @Delete(':tenantId/domains/:domainId')
+  @UseGuards(TenantGuard)
+  async removeDomain(
+    @Param('tenantId') tenantId: string,
+    @Param('domainId') domainId: string,
+  ) {
+    return this.commandBus.execute(
+      new RemoveTenantDomainCommand(tenantId, domainId),
+    );
   }
 
   @Post(':tenantId/members')
